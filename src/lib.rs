@@ -21,53 +21,51 @@ fn print_res(vec: &Vec<&str>) {
     }
 }
 
-pub struct Config<'a> {
-    pub expression: &'a String,
-    pub file: &'a String,
+pub struct Config {
+    pub expression: String,
+    pub file: String,
     pub case_insensitive: bool,
 }
 
-impl<'a> Config<'a> {
-    pub fn build(args: &Vec<String>) -> Result<Config, &'static str> {
-        if args.len() != 3 {
-            return Err("Not enough arguments.");
-        }
+impl Config {
+    pub fn build<T>(mut args: T) -> Result<Config, &'static str>
+    where
+        T: Iterator<Item = String>,
+    {
+        args.next();
+
+        let expression = match args.next() {
+            Some(val) => val,
+            None => return Err("Too few arguments."),
+        };
+
+        let file = match args.next() {
+            Some(val) => val,
+            None => return Err("Too few arguments."),
+        };
 
         let case_sensitivity = env::var("IGNORE_CASE").is_ok();
 
         Ok(Config {
-            expression: &args[1],
-            file: &args[2],
+            expression,
+            file,
             case_insensitive: case_sensitivity,
         })
     }
 }
 
 fn search<'a>(expression: &str, content: &'a str) -> Vec<&'a str> {
-    let mut result: Vec<&str> = Vec::new();
-
-    for line in content.lines() {
-        if line.contains(expression) {
-            result.push(line);
-        }
-    }
-
-    result
+    content
+        .lines()
+        .filter(|el| el.contains(expression))
+        .collect()
 }
 
 fn search_case_insensitive<'a>(expression: &str, content: &'a str) -> Vec<&'a str> {
-    let mut result: Vec<&str> = Vec::new();
-    let lower_case_expression = expression.to_lowercase();
-
-    for line in content.lines() {
-        let lower_case_line = line.to_lowercase();
-
-        if lower_case_line.contains(&lower_case_expression) {
-            result.push(line);
-        }
-    }
-
-    result
+    content
+        .lines()
+        .filter(|el| el.to_lowercase().contains(&expression.to_lowercase()))
+        .collect()
 }
 
 #[cfg(test)]
