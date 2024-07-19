@@ -7,12 +7,12 @@ fn main() {
     // dbg!(args);
 
     let config: Config = Config::build(&args).unwrap_or_else(|_| {
-        println!("Usage: minigrep <expression> <file_path>");
+        eprintln!("Usage: minigrep <expression> <file_path>");
         process::exit(1);
     });
 
     if let Err(e) = run(config) {
-        println!("Error: {e}");
+        eprintln!("Error: {e}");
         process::exit(1);
     }
 }
